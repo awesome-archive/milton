@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2016 Sergio Gonzalez. All rights reserved.
+// Copyright (c) 2015 Sergio Gonzalez. All rights reserved.
 // License: https://github.com/serge-rgb/milton#license
 
 // Notes:
@@ -17,7 +17,8 @@ struct MiltonPressureQueue
 
 struct MiltonPressureQueue g_milton_tablet_pressures;
 
-float* milton_osx_poll_pressures(int* out_num_pressures)
+float*
+milton_osx_poll_pressures(int* out_num_pressures)
 {
     *out_num_pressures = 0;
     float* pressures = NULL;
@@ -31,10 +32,13 @@ float* milton_osx_poll_pressures(int* out_num_pressures)
     return pressures;
 }
 
-void milton_osx_tablet_hook(void* event_)
+void
+milton_osx_tablet_hook(void* event_)
 {
     NSEvent* event = (NSEvent*)event_;
     float pressure = [event pressure];
-    g_milton_tablet_pressures.pressures[g_milton_tablet_pressures.count++] = pressure;
-    mlt_assert ( g_milton_tablet_pressures.count < MILTON_TABLET_EVT_QUEUE_SIZE );
+    if ( g_milton_tablet_pressures.count < MILTON_TABLET_EVT_QUEUE_SIZE )
+    {
+        g_milton_tablet_pressures.pressures[g_milton_tablet_pressures.count++] = pressure;
+    }
 }

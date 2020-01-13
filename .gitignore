@@ -2,13 +2,13 @@
 *.mlt
 
 # Visual Studio crap
-third_party/SDL2-2.0.3/VisualC
+third_party/SDL2-*/VisualC
 *.vcxproj.user
 *.sdf
 *.opensdf
 *.psess
 *.vsp
-
+*.sln
 VS2015/**/*.tlog
 VS2015/**/*.cache
 VS2015/**/*.idb
@@ -21,25 +21,39 @@ VS2015/**/*.dll
 VS2015/Milton/x64
 VS2015/Milton/x86
 *.opendb
+*.VC.db
+*.vs
 
 
 # Windows profiler
 *.sleepy
 
 # SDL build
-third_party/SDL2-2.0.3/Makefile
-third_party/SDL2-2.0.3/Makefile.rules
-third_party/SDL2-2.0.3/config.log
-third_party/SDL2-2.0.3/config.status
-third_party/SDL2-2.0.3/libtool
-third_party/SDL2-2.0.3/sdl2-config
-third_party/SDL2-2.0.3/sdl2.pc
+third_party/SDL2-*/Makefile
+third_party/SDL2-*/Makefile.rules
+third_party/SDL2-*/config.log
+third_party/SDL2-*/config.status
+third_party/SDL2-*/libtool
+third_party/SDL2-*/sdl2-config
+third_party/SDL2-*/sdl2.pc
+third_party/SDL2-*/CMakeFiles
+third_party/SDL2-*/*.vcxproj
+third_party/SDL2-*/*.filters
+third_party/SDL2-*/*.cmake
+third_party/SDL2-*/CMakeCache.txt
+third_party/SDL2-*/*/Debug/*
 
-
-# glew build
-third_party/glew-1.13.0/build/vc12/tmp/*
 
 # build dir
 build/
 
 src/shaders.gen.h
+
+# Tundra stuff
+.tundra*
+
+# RenderDoc
+*.cap
+
+# Deploy script
+OUTPUT

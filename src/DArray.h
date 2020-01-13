@@ -1,62 +1,70 @@
-// Copyright (c) 2016 Sergio Gonzalez. All rights reserved.
+// Copyright (c) 2015 Sergio Gonzalez. All rights reserved.
 // License: https://github.com/serge-rgb/milton#license
 
 // Dynamic array template class
 
+#pragma once
 
 #include "common.h"
+
+#include "memory.h"
+#include "platform.h"
 
 template <typename T>
 struct DArray
 {
-    u64     count;
-    u64     capacity;
+    i64     count;
+    i64     capacity;
     T*      data;
+
+    T&
+    operator[](sz i)
+    {
+        mlt_assert(i < count);
+        return data[i];
+    }
 };
 
 template <typename T>
-DArray<T> dynamic_array(u64 capacity)
+DArray<T>
+dynamic_array(i64 capacity)
 {
     DArray<T> arr;
     arr.count = 0;
     arr.capacity = capacity;
-    arr.data = (T*)mlt_calloc(capacity, sizeof(T));
+    arr.data = (T*)mlt_calloc(capacity, sizeof(T), "DArray");
     return arr;
 }
 
 template <typename T>
-void grow(DArray<T>* arr)
+void
+grow(DArray<T>* arr)
 {
-    if (arr->capacity == 0)
-    {
+    // Default capacity.
+    if ( arr->capacity == 0 ) {
         arr->capacity = 32;
     }
-    while (arr->capacity <= arr->count)
-    {
+    while ( arr->capacity <= arr->count ) {
         arr->capacity *= 2;
     }
-    if (arr->data)
-    {
-        arr->data = (T*)mlt_realloc(arr->data, arr->capacity*sizeof(T));
-        if (arr->data == NULL)
-        {
+    if ( arr->data ) {
+        arr->data = (T*)mlt_realloc(arr->data, (size_t)(arr->capacity*sizeof(T)), "DArray");
+        if ( arr->data == NULL ) {
             milton_die_gracefully("Milton ran out of memory :(");
         }
     }
-    else
-    {
-        arr->data = (T*)mlt_calloc(arr->capacity, sizeof(T));
+    else {
+        arr->data = (T*)mlt_calloc((size_t)arr->capacity, sizeof(T), "DArray");
     }
 }
 
 
 template <typename T>
-void reserve(DArray<T>* arr, u64 size)
+void
+reserve(DArray<T>* arr, i64 size)
 {
-    if (arr)
-    {
-        if (arr->capacity < size || arr->data == NULL)
-        {
+    if ( arr ) {
+        if ( arr->capacity < size || arr->data == NULL ) {
             arr->capacity = size;
             grow(arr);
         }
@@ -64,79 +72,98 @@ void reserve(DArray<T>* arr, u64 size)
 }
 
 template <typename T>
-void push(DArray<T>* arr, const T& elem)
+T*
+push(DArray<T>* arr, const T& elem)
 {
-    if (arr->data == NULL)
-    {
+    if ( arr->data == NULL ) {
         arr->capacity = 32;
         arr->count = 0;
         grow(arr);
     }
-    else if (arr->capacity <= arr->count)
-    {
+    else if ( arr->capacity <= arr->count ) {
         grow(arr);
     }
     arr->data[arr->count++] = elem;
+    return &arr->data[arr->count-1];
 }
 
 template <typename T>
-T* peek(DArray<T>* arr)
+T*
+get(DArray<T>* arr, i64 i)
+{
+    T* e = &arr->data[i];
+    return e;
+}
+
+template <typename T>
+T*
+peek(DArray<T>* arr)
 {
     T* elem = NULL;
-    if (arr->count > 0)
-    {
+    if ( arr->count > 0 ) {
         elem = &arr->data[arr->count-1];
     }
     return elem;
 }
 
 template <typename T>
-T pop(DArray<T>* arr)
+T
+pop(DArray<T>* arr)
 {
     T elem = {};
-    if (arr->count > 0)
-    {
+    if ( arr->count > 0 ) {
         elem = arr->data[--arr->count];
+    } else {
+        mlt_assert(!"Attempting to pop from an empty array.");
     }
     return elem;
 }
 
 template <typename T>
-void reset(DArray<T>* arr)
+i64
+count(DArray<T>* arr)
+{
+    return arr->count;
+}
+
+template <typename T>
+void
+reset(DArray<T>* arr)
 {
     arr->count = 0;
     // TODO: set to zero?
 }
 
 template <typename T>
-void release(DArray<T>* arr)
+void
+release(DArray<T>* arr)
 {
-    if (arr->data)
-    {
-        mlt_free(arr->data);
+    if ( arr->data ) {
+        mlt_free(arr->data, "DArray");
     }
 }
 
 // Iteration
 
 template <typename T>
-T* begin(const DArray<T>& arr)
+T*
+begin(const DArray<T>& arr)
 {
     T* result = NULL;
-    if (arr.count > 0)
-    {
+    if ( arr.count > 0 ) {
         result = &arr.data[0];
     }
     return result;
 }
 
 template <typename T>
-T* end(const DArray<T>& arr)
+T*
+end(const DArray<T>& arr)
 {
     T* result = NULL;
-    if (arr.count > 0)
-    {
+    if ( arr.count > 0 ) {
         result = arr.data + arr.count;
     }
     return result;
 }
+

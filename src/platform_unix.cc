@@ -1,52 +1,57 @@
-// Copyright (c) 2015-2016 Sergio Gonzalez. All rights reserved.
+// Copyright (c) 2015 Sergio Gonzalez. All rights reserved.
 // License: https://github.com/serge-rgb/milton#license
 
 
-#ifdef __linux__
-#ifndef _GNU_SOURCE
-#define _GNU_SOURCE  // To get MAP_ANONYMOUS on linux
-#endif
-#define __USE_MISC 1  // MAP_ANONYMOUS and MAP_NORESERVE dont' get defined without this
-#include <sys/mman.h>
-#undef __USE_MISC
+#include "platform.h"
+#include "platform_unix.h"
 
-#include <X11/Xlib.h>
-#include <X11/extensions/XInput.h>
-#if 0
-#include <X11/extensions/XIproto.h>
-#include <X11/keysym.h>
-#endif
+static FILE* g_unix_logfile;
 
-#elif defined(__MACH__)
-#include <sys/mman.h>
-#else
-#error "This is not the Unix you're looking for"
-#endif
+void
+unix_log_args(char* format, va_list args)
+{
+    char message [ 4096] = {0};
+    int num_bytes_written = 0;
+    mlt_assert(format != NULL);
 
-#define HEAP_BEGIN_ADDRESS NULL
-#if MILTON_DEBUG
-#undef HEAP_BEGIN_ADDRESS
-#define HEAP_BEGIN_ADDRESS (void*)(1024LL * 1024 * 1024 * 1024)
-#endif
+    num_bytes_written = vsnprintf(message, sizeof(message) - 1, format, args);
 
-#ifndef MAP_ANONYMOUS
+    if ( num_bytes_written > 0 ) {
+        printf("%s", message);
+        if (!g_unix_logfile) {
+            char fname[MAX_PATH] = TO_PATH_STR("milton.log");
+            platform_fname_at_config(fname, MAX_PATH);
+            g_unix_logfile = platform_fopen(fname, "wb");
+            if (!g_unix_logfile) {
+                fprintf(stderr, "ERROR: Can't open log file %s\n", fname);
+            }
+        }
+        if (g_unix_logfile) {
+            fwrite(message, 1, num_bytes_written, g_unix_logfile);
+        }
+    }
+}
 
-#ifndef MAP_ANON
-#error "MAP_ANONYMOUS flag not found!"
-#else
-#define MAP_ANONYMOUS MAP_ANON
-#endif
+void
+unix_log(char* format, ...)
+{
+    char message[ 4096 ];
 
-#endif // MAP_ANONYMOUS
+    int num_bytes_written = 0;
 
-#define platform_milton_log printf
+    va_list args;
 
-#if defined(__MACH__)
-// Include header for our SDL hook.
-#include "platform_OSX_SDL_hooks.h"
-#endif
+    mlt_assert (format != NULL);
 
-void milton_fatal(char* message)
+    va_start(args, format);
+
+    unix_log_args(format, args);
+
+    va_end( args );
+}
+
+void
+milton_fatal(char* message)
 {
     milton_log("*** [FATAL] ***: \n\t");
     puts(message);
@@ -54,32 +59,28 @@ void milton_fatal(char* message)
 }
 
 // TODO: Show a message box, and then die
-void milton_die_gracefully(char* message)
+void
+milton_die_gracefully(char* message)
 {
     milton_log("*** [FATAL] ***: \n\t");
-    puts(message);
+    milton_log(message);
     exit(EXIT_FAILURE);
 }
-
-#ifdef __linux__
-void        platform_load_gl_func_pointers() {}
-#elif __MACH__
-void        platform_load_gl_func_pointers() {}
-#endif
 
 typedef struct UnixMemoryHeader_s
 {
     size_t size;
 } UnixMemoryHeader;
 
-void* platform_allocate(size_t size)
+void*
+platform_allocate(size_t size)
 {
-    u8* ptr = (u8*)mmap(HEAP_BEGIN_ADDRESS, size + sizeof(UnixMemoryHeader),
-                   PROT_WRITE | PROT_READ,
-                   /*MAP_NORESERVE |*/ MAP_PRIVATE | MAP_ANONYMOUS,
-                   -1, 0);
-    if (ptr)
-    {
+    u8* ptr = (u8*)mmap(NULL, size + sizeof(UnixMemoryHeader),
+                        PROT_WRITE | PROT_READ,
+                        /*MAP_NORESERVE |*/ MAP_PRIVATE | MAP_ANONYMOUS,
+                        -1, 0);
+    if ( ptr ) {
+        // NOTE: This should be a footer if we intend on returning aligned data.
         *((UnixMemoryHeader*)ptr) = (UnixMemoryHeader)
         {
             .size = size,
@@ -89,15 +90,66 @@ void* platform_allocate(size_t size)
     return ptr;
 }
 
-void platform_deallocate_internal(void* ptr)
+void
+platform_deallocate_internal(void** ptr)
 {
-    mlt_assert(ptr);
-    u8* begin = (u8*)ptr - sizeof(UnixMemoryHeader);
+    mlt_assert(*ptr);
+    u8* begin = (u8*)(*ptr) - sizeof(UnixMemoryHeader);
     size_t size = *((size_t*)begin);
-    munmap(ptr, size);
+    munmap(*ptr, size);
 }
 
-int main(int argc, char** argv)
+void
+platform_cursor_hide()
 {
-    milton_main();
+    int shown = SDL_ShowCursor(-1);
+    if ( shown ) {
+        int res = SDL_ShowCursor(0);
+        if ( res < 0 ) {
+            INVALID_CODE_PATH;
+        }
+    }
 }
+
+void
+str_to_path_char(char* str, PATH_CHAR* out, size_t out_sz)
+{
+    if ( out && str ) {
+        PATH_STRNCPY(out, str, out_sz);
+    }
+}
+
+void
+platform_cursor_show()
+{
+    int shown = SDL_ShowCursor(-1);
+    if ( !shown ) {
+        SDL_ShowCursor(1);
+    }
+}
+
+i32
+platform_monitor_refresh_hz()
+{
+    i32 hz = 60;
+    // TODO: Implement this on macOs and Linux.
+    return hz;
+}
+
+int
+platform_titlebar_height(PlatformState* p)
+{
+    return 20; // TODO: implement on mac and linux
+}
+
+int
+main(int argc, char** argv)
+{
+    char* file_to_open = NULL;
+    if ( argc == 2 ) {
+        file_to_open = argv[1];
+    }
+    milton_main(false, file_to_open);
+}
+
+

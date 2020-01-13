@@ -1,72 +1,79 @@
-// Copyright (c) 2015-2016 Sergio Gonzalez. All rights reserved.
-// License: https://github.com/serge-rgb/milton#license
+#undef main // SDL does things we don't want
+
+#define INVALIDATE_COUNT(ptr, count) memset((u8*)(ptr), -1, sizeof(*(ptr)) * (count))
+
+#define INVALIDATE(ptr) INVALIDATE_COUNT(ptr, 1)
 
 
-#if MILTON_DEBUG
+#define COMPARE_BYTES_COUNT(ptrA, ptrB, count) \
+    assert(sizeof(*(ptrA)) == sizeof(*(ptrB))), \
+    compare_bytes((u8*)(ptrA), (u8*)(ptrB), sizeof(*(ptrA)) * (count) )
+
+#define COMPARE_BYTES(ptrA, ptrB) \
+    COMPARE_BYTES_COUNT(ptrA, ptrB, 1)
+
+#define EXPECT_TRUE(expr) \
+    if (!(expr)) { \
+        failed_test(#expr); \
+    }
 
 
-static void milton_cord_tests(Arena* arena);
-static void milton_blend_tests();
-static void milton_startup_tests();
-static void milton_math_tests();
-
-void milton_run_tests(MiltonState* milton_state)
+void
+failed_test(char* expr)
 {
-    milton_math_tests();
-    milton_blend_tests();
-    milton_startup_tests();
+    fprintf(stderr, "Failed expression: [ %s ]\n", expr);
 }
 
-static void milton_startup_tests()
+b32
+compare_bytes(u8* bufA, u8* bufB, sz size)
 {
-    v3f rgb = hsv_to_rgb(v3f{ 0,0,0 });
-    mlt_assert(rgb.r == 0 &&
-               rgb.g == 0 &&
-               rgb.b == 0);
-    rgb = hsv_to_rgb(v3f{ 0, 0, 1.0 });
-    mlt_assert(rgb.r == 1 &&
-               rgb.g == 1 &&
-               rgb.b == 1);
-    rgb = hsv_to_rgb(v3f{ 120, 1.0f, 0.5f });
-    mlt_assert(rgb.r == 0 &&
-               rgb.g == 0.5f &&
-               rgb.b == 0);
-    rgb = hsv_to_rgb(v3f{ 0, 1.0f, 1.0f });
-    mlt_assert(rgb.r == 1.0f &&
-               rgb.g == 0 &&
-               rgb.b == 0);
+    b32 equal = true;
+
+    for (sz i = 0; i < size; ++i) {
+        if (bufA[i] != bufB[i]) {
+            equal = false;
+            break;
+        }
+    }
+
+    return equal;
 }
 
-static void milton_blend_tests()
+void
+test_save_load()
 {
-    v4f a = { 1,0,0, 0.5f };
-    v4f b = { 0,1,0, 0.5f };
-    v4f blend = blend_v4f(a, b);
-    mlt_assert (blend.r > 0);
+    Milton milton = {};
+
+    PATH_CHAR* path = TO_PATH_STR("TEST_loading.mlt");
+
+    milton_init(&milton, 0, 0, 1, path, MiltonInit_FOR_TEST);
+    milton_reset_canvas_and_set_default(&milton);
+    milton.persist->mlt_file_path = path;
+    milton_save(&milton);
+
+    Milton loaded_milton = {};
+
+    milton_init(&loaded_milton, 0, 0, 1, TO_PATH_STR("TEST_loading.mlt"), MiltonInit_FOR_TEST);
+
+    INVALIDATE(loaded_milton.view);
+    loaded_milton.view->screen_size = milton.view->screen_size;
+
+    INVALIDATE_COUNT(loaded_milton.brushes, 3);
+    INVALIDATE_COUNT(loaded_milton.brush_sizes, 3); // We only save PEN, ERASER and PRIMITIVE
+
+    milton_load(&loaded_milton);
+
+    EXPECT_TRUE( COMPARE_BYTES(milton.view, loaded_milton.view) );
+
+    EXPECT_TRUE( milton.canvas->layer_guid == loaded_milton.canvas->layer_guid );
+
+    EXPECT_TRUE( COMPARE_BYTES_COUNT(milton.brushes, loaded_milton.brushes, BrushEnum_COUNT) );
+    EXPECT_TRUE( COMPARE_BYTES_COUNT(milton.brush_sizes, loaded_milton.brush_sizes, BrushEnum_COUNT) );
 }
 
-static void milton_math_tests()
+extern "C" int
+main()
 {
-    v2i a = { 0,  0 };
-    v2i b = { 2,  0 };
-    v2i u = { 1, -2 };
-    v2i v = { 1,  2 };
-
-    v2f intersection;
-    b32 hit = intersect_line_segments(a, b,
-                                      u, v,
-                                      &intersection);
-    mlt_assert(hit);
-    mlt_assert(intersection.y == 0);
-    mlt_assert(intersection.x >= 0.99999 && intersection.x <= 1.00001f);
+    test_save_load();
+    return 0;
 }
-
-#else
-
-// Avoid empty translation unit warning.
-#if defined(_WIN32) && defined(_MSC_VER)
-#pragma warning(push, 0)
-
-#endif  // _WIN32 && _MSC_VER
-
-#endif  // MILTON_DEBUG

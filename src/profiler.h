@@ -1,4 +1,4 @@
-// Copyright (c) 2015-2016 Sergio Gonzalez. All rights reserved.
+// Copyright (c) 2015 Sergio Gonzalez. All rights reserved.
 // License: https://github.com/serge-rgb/milton#license
 
 #pragma once
@@ -10,7 +10,7 @@
 // The PROFILE_RASTER_BEGIN and PROFILE_RASTER_PUSH macros report the rasterizer performance
 // to the Windows console output.
 //
-// The PROFILE_GRAPH_BEGIN and PROFILE_GRAPH_PUSH macros write to the
+// The PROFILE_GRAPH_BEGIN and PROFILE_GRAPH_END macros write to the
 // g_profiler_last array.
 //
 //
@@ -54,7 +54,7 @@ struct GraphData
     u64 system;
 };
 
-GraphData g_graphframe;
+extern GraphData g_graphframe;
 
 static char* g_profiler_names[PROF_RASTER_COUNT] =
 {
@@ -74,51 +74,34 @@ void profiler_output();
 void profiler_reset();
 
 #if defined(_WIN64) && MILTON_ENABLE_PROFILING
-
-#define PROFILER_IMPLEMENTATION
-
-u64 g_profiler_ticks[PROF_COUNT];     // Total cpu clocks
-u64 g_profiler_last[PROF_COUNT];
-u64 g_profiler_count[PROF_COUNT];     // How many calls
+    extern u64 g_profiler_ticks[PROF_COUNT];     // Total cpu clocks
+    extern u64 g_profiler_last[PROF_COUNT];
+    extern u64 g_profiler_count[PROF_COUNT];     // How many calls
 
 
-static u32 TSC_AUX;
-static int CPUID_AUX1[4];
-static int CPUID_AUX2;
+    static u32 TSC_AUX;
+    static int CPUID_AUX1[4];
+    static int CPUID_AUX2;
 
-#if MILTON_ENABLE_RASTER_PROFILING
+    /////////
+    #define PROFILE_GRAPH_BEGIN(name) \
+            milton->graph_frame.start = perf_counter();
 
-#define PROFILE_RASTER_BEGIN(name) __cpuid(CPUID_AUX1, CPUID_AUX2); u64 profile_##name##_start = __rdtsc();
-#define PROFILE_RASTER_PUSH_(name, start)\
-    g_profiler_count[PROF_RASTER_##name] += 1;\
-    u64 profile_##name##_ncycles = __rdtscp(&TSC_AUX) - start; \
-    g_profiler_ticks[PROF_RASTER_##name] += profile_##name##_ncycles; \
-    g_profiler_last[PROF_RASTER_##name] = profile_##name##_ncycles;
+    #define PROFILE_GRAPH_END(name)  \
+            milton->graph_frame.##name = perf_counter() - milton->graph_frame.start
 
-#define PROFILE_RASTER_PUSH(name) PROFILE_RASTER_PUSH_(name, profile_##name##_start)
+#elif defined(__linux__) && MILTON_ENABLE_PROFILING
 
-#else
+    #define PROFILE_GRAPH_BEGIN(name) \
+            milton->graph_frame.start = perf_counter();
 
-#define PROFILE_RASTER_BEGIN(name)
-#define PROFILE_RASTER_PUSH(name)
-#endif /////////////////
-
-/////////
-#define PROFILE_GRAPH_BEGIN(name) \
-        milton_state->graph_frame.start = perf_counter();
-
-#define PROFILE_GRAPH_PUSH(name)  \
-        milton_state->graph_frame.##name = perf_counter() - milton_state->graph_frame.start
+    #define PROFILE_GRAPH_END(name)  \
+            milton->graph_frame.name = perf_counter() - milton->graph_frame.start
 
 #else
 
 #define PROFILE_GRAPH_BEGIN(name)
-#define PROFILE_GRAPH_PUSH(name)
-
-   #if !defined(PROFILE_RASTER_BEGIN) && !defined(PROFILE_RASTER_PUSH)
-       #define PROFILE_RASTER_BEGIN(name)
-       #define PROFILE_RASTER_PUSH(name)
-   #endif
+#define PROFILE_GRAPH_END(name)
 
 #endif
 

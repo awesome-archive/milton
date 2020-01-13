@@ -1,9 +1,11 @@
-// Copyright (c) 2015-2016 Sergio Gonzalez. All rights reserved.
+// Copyright (c) 2015 Sergio Gonzalez. All rights reserved.
 // License: https://github.com/serge-rgb/milton#license
 
-#include "localization_txt_enums.h"
+#include "localization.h"
 
-#define LOC(str) get_localized_string(TXT_ ## str)
+#include "common.h"
+#include "memory.h"
+#include "utils.h"
 
 enum Languages
 {
@@ -19,11 +21,14 @@ static char* g_localized_strings[Language_COUNT][TXT_Count];
 static char* g_command_abbreviations[TXT_Count];  // Exclusively NULL pointers except for translated strings which represent a command.
 static char* g_baked_strings_with_commands[TXT_Count];  // These get malloc'd once in case that the corresponding text includes a command shortcut (see g_command_abbreviations)
 
-#define EN(N,S) g_localized_strings[Language_ENGLISH][N] = S
+#define EN(N,S) mlt_assert(!g_localized_strings[Language_ENGLISH][N]); g_localized_strings[Language_ENGLISH][N] = S
 #define ES(N,S) g_localized_strings[Language_SPANISH][N] = S
 
-static void init_localization()
+void
+init_localization()
 {
+    mlt_assert(TXT_Count - TXT_Action_FIRST == Action_COUNT - Action_FIRST);  // If this hits, you need to match TXT_Action_ with Action_
+    memset(g_localized_strings, 0, sizeof(g_localized_strings));
     { // English
         EN(TXT_file, "File");
         EN(TXT_open_milton_canvas, "Open Milton Canvas");
@@ -36,15 +41,16 @@ static void init_localization()
         EN(TXT_brushes, "Brushes");
         EN(TXT_opacity, "Opacity");
         EN(TXT_brush_size, "Brush size");
-        EN(TXT_switch_to_brush, "Switch to brush");
-        EN(TXT_switch_to_eraser, "Switch to eraser");
+        EN(TXT_switch_to_brush, "Brush");
+        EN(TXT_switch_to_eraser, "Eraser");
+        EN(TXT_switch_to_primitive, "Lines");
         EN(TXT_choose_background_color, "Choose background color");
         EN(TXT_color, "Color");
         EN(TXT_export_DOTS, "Export...");
         EN(TXT_MSG_click_and_drag_instruction, "Click and drag to select the area to export.");
         EN(TXT_current_selection, "Current selection");
         EN(TXT_scale_up, "Scale up");
-        EN(TXT_final_image_size, "Final image size");
+        EN(TXT_final_image_resolution, "Final image resolution");
         EN(TXT_export_selection_to_image_DOTS, "Export selection to image...");
         EN(TXT_MSG_memerr_did_not_write, "Did not write file. Not enough memory available for operation.");
         EN(TXT_error, "Error");
@@ -84,6 +90,66 @@ static void init_localization()
         EN(TXT_website, "Website");
         EN(TXT_disable_stroke_smoothing, "Disable Stroke Smoothing");
         EN(TXT_enable_stroke_smoothing, "Enable Stroke Smoothing");
+        EN(TXT_transparent_background, "Transparent background");
+        EN(TXT_settings, "Settings");
+        EN(TXT_default_background_color, "Default background color for new canvas:");
+        EN(TXT_set_current_background_color_as_default, "Set current background color as default");
+        EN(TXT_background_color, "Background color");
+        EN(TXT_background_COLON, "Background:");
+        EN(TXT_OPENBRACKET_default_canvas_CLOSE_BRACKET, "[Default canvas]");
+        EN(TXT_could_not_delete_default_canvas, "Could not delete default canvas. Contents will be still there when you create a new canvas.");
+        EN(TXT_peek_out_increment_percent, "Peek-out increment percentage");
+        EN(TXT_opacity_pressure, "Use pressure for opacity");
+        EN(TXT_soft_brush, "Soft brush");
+        EN(TXT_minimum, "Minimum");
+        EN(TXT_hardness, "Hardness");
+        EN(TXT_peek_out, "Peek-Out");
+        EN(TXT_rotation, "Rotation");
+        EN(TXT_blur, "Blur");
+        EN(TXT_level, "Level");
+        EN(TXT_delete_blur, "Delete Blur");
+        EN(TXT_enabled, "Enabled");
+        EN(TXT_default_will_be_cleared, "The default canvas will be cleared. Save it?");
+        EN(TXT_reset_view_at_origin, "Reset view at origin");
+        EN(TXT_reset_GUI, "Reset GUI layout (tool windows)");
+        EN(TXT_size_relative_to_canvas, "Size relative to canvas");
+
+        EN(TXT_Action_DECREASE_BRUSH_SIZE, "Decrease brush size");
+        EN(TXT_Action_INCREASE_BRUSH_SIZE, "Increase brush size");
+        EN(TXT_Action_ZOOM_IN, "Zoom in");
+        EN(TXT_Action_ZOOM_OUT, "Zoom out");
+        EN(TXT_Action_REDO, "Redo");
+        EN(TXT_Action_UNDO, "Undo");
+        EN(TXT_Action_EXPORT, "Export");
+        EN(TXT_Action_QUIT, "Quit");
+        EN(TXT_Action_NEW, "New");
+        EN(TXT_Action_SAVE, "Save");
+        EN(TXT_Action_SAVE_AS, "Save As");
+        EN(TXT_Action_OPEN, "Open");
+        EN(TXT_Action_TOGGLE_MENU, "Menu");
+        EN(TXT_Action_TOGGLE_GUI, "Toggle GUI");
+        EN(TXT_Action_MODE_ERASER, "Eraser");
+        EN(TXT_Action_MODE_PEN, "Pen");
+        EN(TXT_Action_MODE_EYEDROPPER, "Eyedropper");
+        EN(TXT_Action_MODE_PRIMITIVE, "Primitive");
+        EN(TXT_Action_SET_BRUSH_ALPHA_10, "Set alpha to 10%");
+        EN(TXT_Action_SET_BRUSH_ALPHA_20, "Set alpha to 20%");
+        EN(TXT_Action_SET_BRUSH_ALPHA_30, "Set alpha to 30%");
+        EN(TXT_Action_SET_BRUSH_ALPHA_40, "Set alpha to 40%");
+        EN(TXT_Action_SET_BRUSH_ALPHA_50, "Set alpha to 50%");
+        EN(TXT_Action_SET_BRUSH_ALPHA_60, "Set alpha to 60%");
+        EN(TXT_Action_SET_BRUSH_ALPHA_70, "Set alpha to 70%");
+        EN(TXT_Action_SET_BRUSH_ALPHA_80, "Set alpha to 80%");
+        EN(TXT_Action_SET_BRUSH_ALPHA_90, "Set alpha to 90%");
+        EN(TXT_Action_SET_BRUSH_ALPHA_100, "Set alpha to 100%");
+        EN(TXT_Action_HELP, "Help");
+        EN(TXT_Action_PEEK_OUT, "Peek out");
+        EN(TXT_Action_DRAG_BRUSH_SIZE, "Drag to change brush size");
+        EN(TXT_Action_TRANSFORM, "Rotate");
+    #if MILTON_ENABLE_PROFILING
+        EN(TXT_Action_TOGGLE_DEBUG_WINDOW, "Toggle debug window");
+    #endif
+
     }
 
     {  // Spanish
@@ -97,15 +163,15 @@ static void init_localization()
         ES(TXT_brushes, "Brochas");
         ES(TXT_opacity, "Opacidad");
         ES(TXT_brush_size, "Tamaño");
-        ES(TXT_switch_to_brush, "Usar brocha");
-        ES(TXT_switch_to_eraser, "Usar goma");
+        ES(TXT_switch_to_brush, "Brocha");
+        ES(TXT_switch_to_eraser, "Goma");
         ES(TXT_choose_background_color, "Escoger color de fondo");
         ES(TXT_color, "Color");
         ES(TXT_export_DOTS, "Exportar...");
         ES(TXT_MSG_click_and_drag_instruction, "Haz click y Arrastra");
         ES(TXT_current_selection, "Selección actual");
         ES(TXT_scale_up, "Escalar");
-        ES(TXT_final_image_size, "Tamaño final");
+        ES(TXT_final_image_resolution, "Resolución final");
         ES(TXT_export_selection_to_image_DOTS, "Exportar Selección a Imagen...");
         ES(TXT_MSG_memerr_did_not_write, "No se escribió archivo. No hay suficiente memoria.");
         ES(TXT_error, "Error");
@@ -139,7 +205,9 @@ static void init_localization()
         g_command_abbreviations [TXT_increase_brush_size]   = " ] ";
         g_command_abbreviations [TXT_eye_dropper]           = "i";
         g_command_abbreviations [TXT_switch_to_brush]       = "B";
+        g_command_abbreviations [TXT_switch_to_primitive]   = "L";
         g_command_abbreviations [TXT_switch_to_eraser]      = "E";
+        g_command_abbreviations [TXT_peek_out]              = "`";
     }
 #undef C
 #undef EN
@@ -148,41 +216,42 @@ static void init_localization()
 
 
 // str -- A string, translated and present in the tables within localization.c
-char* get_localized_string(int id)
+char*
+loc(Texts id)
 {
     // TODO: Grab this from system
     i32 loc = Language_ENGLISH;
 
-    char* result = g_localized_strings[loc][id];
-    if (result)
-    {
+    char* result = NULL;
+
+    if (id < TXT_Count) {
+        result = g_localized_strings[loc][id];
+    }
+
+    // TODO: Need to grab bindings...
+    if ( result ) {
         char* cmd = g_command_abbreviations[id];
 
         // Include keyboard shortcut in string
-        if (cmd)
-        {
-            if (!g_baked_strings_with_commands[id])
-            {
+        if ( cmd ) {
+            if ( !g_baked_strings_with_commands[id] ) {
                 char* name = g_localized_strings[loc][id];
                 char* spacer = " - ";
 
                 size_t len = strlen(name) + strlen(spacer) + strlen(cmd) + 2 /*[]*/+ 1/*\n*/;
-                char* with_cmd = (char*)mlt_calloc(len, 1);
+                char* with_cmd = (char*)mlt_calloc(len, 1, "Strings");
 
-                strncat_s(with_cmd, len, name, strlen(name));
-                strncat_s(with_cmd, len, spacer, strlen(spacer));
-
-                strncat_s(with_cmd, len, "[", 1);
-                strncat_s(with_cmd, len, cmd, strlen(cmd));
-                strncat_s(with_cmd, len, "]", 1);
+                strncat(with_cmd, name, len - 1);
+                strncat(with_cmd, spacer, len - strlen(with_cmd) - 1);
+                strncat(with_cmd, "[", len - strlen(with_cmd) - 1);
+                strncat(with_cmd, cmd, len - strlen(with_cmd) - 1);
+                strncat(with_cmd, "]", len - strlen(with_cmd) - 1);
 
                 g_baked_strings_with_commands[id] = with_cmd;
             }
             result = g_baked_strings_with_commands[id];
         }
-    }
-    else
-    {
+    } else {
         result = "STRING NEEDS LOCALIZATION";
     }
 

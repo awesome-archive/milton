@@ -1,4 +1,4 @@
-![MiltonLogo](http://i.imgur.com/hXxloIS.png)
+![MiltonLogo](http://i.imgur.com/ADgRZUB.png)
 
 [Milton](https://github.com/serge-rgb/milton) is an open source application that lets you Just Paint.
 
@@ -36,7 +36,7 @@ Here is the  [latest video tutorial](https://www.youtube.com/watch?v=g27gHio2Ohk
 
 Check out the [patreon page](https://www.patreon.com/serge_rgb?ty=h) if you would like to help out. :)
 
-Milton is Windows only at the moment. Linux and OSX support is intended for the future, but I don't know when that will come.
+While on Windows there are binaries available, for Milton on Linux or OSX you will have to compile from source. There are some basic build instructions below. They will probably build, but please be prepared to do a bit of debugging on your end if you run into trouble, since these are not the primary development platforms.
 
 How to Compile
 ==============
@@ -44,90 +44,63 @@ How to Compile
 Windows
 -------
 
-Requirements: VS2015. If you have another version, edit scripts\vcvars.bat
-to point to your Visual Studio path. (2010 == 10.0, 2012 == 11.0, 2013 == 12.0, 2015 == 14.0)
+Milton currently supports Visual Studio 2019.
 
-Run `cmd.exe` and type the following
+Other versions of Visual Studio might not work.
+
+To build:
+
+Run a x64 developer command prompt (for VS 2019 this corresponds to the "x64 Native Tools Command Prompt") and type the following:
 
 ```
-scripts\vcvars.bat
 build.bat
 ```
 
 Milton will be compiled to `build\Milton.exe`
 
 
-Linux
------
-
-_No linux support at the moment._
+This repo provides a binary SDL.lib that was compiled by running
+`build_deps.bat` in the `third_party` directory.
 
 
-OSX
----
+Linux and macOS
+---------------
 
-_No OSX support at the moment._
+As of 2018-10-24, linux and mac are not officially supported. I (Sergio) would like to support them again but my efforts are currently going into producing a new release for Windows. You can try and compile with the included scripts, but things will likely not work!
+
+
+Versioning scheme
+=================
+
+Milton uses a MAJOR.MINOR.PATCH versioning scheme, where MAJOR keeps track of very significant changes, such as a UI overhaul. MINOR keeps track of binary file format compatibility. PATCH is incremented for new releases that do not break file format compatibility. PATCH version gets reset to 0 when the MINOR version increases.
+
+For example, Milton version 1.3.1 can read mlt files produced any previous version, but it can't read files produced by 1.4.0
 
 
 License
 =======
 
-    Copyright (c) 2015-2016 Sergio Gonzalez
+    Milton
 
-    Permission is hereby granted, free of charge, to any person obtaining a copy of
-    this software and associated documentation files (the "Software"), to deal in
-    the Software without restriction, including without limitation the rights to
-    use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
-    of the Software, and to permit persons to whom the Software is furnished to do
-    so, subject to the following conditions:
+    Copyright (C) 2015 - 2018 Sergio Gonzalez
 
-    The above copyright notice and this permission notice shall be included in all
-    copies or substantial portions of the Software.
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-    SOFTWARE.
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
 
-Credits and Thanks
-==================
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-* Art
-    * Milton's logo and artwork by the very talented [Perla Fierro](http://portafolio.eclat-studio.com/)
+Thanks
+======
 
-* Code
-    * [Apoorva Joshi](http://apoorvaj.io) - Author of [Papaya](https://github.com/ApoorvaJ/Papaya) for joining forces and creating [EasyTab](https://github.com/ApoorvaJ/EasyTab).
-    * [Michael Freundorfer](https://github.com/mordecai154)
-    * [Joshua Mendoza](https://github.com/jomendoz)
+Milton is made with love by Sergio Gonzalez with the help of [awesome
+people](https://github.com/serge-rgb/milton/blob/master/CREDITS.md).
 
-* Rubber-ducking / Whiteboarding
-    * Rodrigo Gonzalez del Cueto [@rdelcueto](https://twitter.com/rdelcueto)
-    * Luis Eduardo Pérez
-    * Mom
 
-* The "Jueves Sensual" team :)
-    * Axel Becerril
-    * Ruben Bañuelos
-    * Caro Barberena
-    * Carlos Chilazo
-    * Roberto Lapuente
-    * Joshua Mendoza
-    * Maximiliano Monterrubio
-    * Santiago Montesinos
-    * Aarón Reyes García
-    * Vane Ugalde
-
-* Inspiration / Education
-    * Casey Muratori for Handmade Hero
-
-Glorious Patrons of the Coding Craft
-------------------------------------
-
-Thank you so much for supporting Milton on [Patreon](https://www.patreon.com/serge_rgb?ty=h) to:
-
-* [Neil Blakey-Milner](https://www.patreon.com/nxsy)
-* [Maria Lopez-Lacroix](https://amacasera.com/)
-* [Jeroen van Rijn](https://twitter.com/J_vanRijn)

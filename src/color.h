@@ -1,14 +1,11 @@
-// Copyright (c) 2015-2016 Sergio Gonzalez. All rights reserved.
+// Copyright (c) 2015 Sergio Gonzalez. All rights reserved.
 // License: https://github.com/serge-rgb/milton#license
 
 
 #pragma once
 
-
-#include "utils.h"
-
-
-extern v4f k_eraser_color; // unlikely vector to appear as an rgb [0,1]x3 value
+#include "common.h"
+#include "vector.h"
 
 u32 color_v4f_to_u32(v4f c);
 
@@ -27,5 +24,11 @@ v4f to_premultiplied(v3f rgb, f32 a);
 v3f clamp_255(v3f color);
 
 v3f clamp_01(v3f color);
+
+v4i color_u32_to_v4i(u32 color);
+
+u32 color_v4i_to_u32(v4i color);
+
+u32 un_premultiply(u32 in_color);
 
 

@@ -1,8 +1,10 @@
-// Copyright (c) 2015-2016 Sergio Gonzalez. All rights reserved.
+// Copyright (c) 2015 Sergio Gonzalez. All rights reserved.
 // License: https://github.com/serge-rgb/milton#license
 
 
 #pragma once
+
+#include <imgui.h>
 
 
 #if defined(_WIN32) && defined(_MSC_VER)
@@ -12,6 +14,8 @@
 #if defined(__clang__)
 #pragma clang system_header
 #endif
+
+#define GetWindowFont _GetWindowFont
 
 #ifdef _WIN32
 /* #define VC_EXTRALEAN */
@@ -27,6 +31,7 @@
 #include <SDL_syswm.h>
 
 // Platform independent includes:
+#include <errno.h>
 #include <float.h>
 #include <limits.h>
 #include <math.h>
@@ -41,18 +46,23 @@
 
 #if defined(_WIN32)
 
-#include "SDL_opengl.h"
+#include "gl.h"
 
 #elif defined(__linux__)
 
-#define GL_GLEXT_PROTOTYPES
-#include <GL/gl.h>
-#include <GL/glext.h>
+#include "gl.h"
+
+// #define GL_GLEXT_PROTOTYPES
+// #include <GL/gl.h>
+// #include <GL/glext.h>
+
+#include <dlfcn.h>  // Dynamic library loading.
 
 #elif defined (__MACH__)
 
-#define GL_GLEXT_PROTOTYPES 1
-#include "SDL_opengl.h"
+// #define GL_GLEXT_PROTOTYPES 1
+// #include "SDL_opengl.h"
+#include "gl.h"
 
 #endif // OpenGL includes
 

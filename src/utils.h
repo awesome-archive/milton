@@ -1,8 +1,12 @@
-// Copyright (c) 2015-2016 Sergio Gonzalez. All rights reserved.
+// Copyright (c) 2015 Sergio Gonzalez. All rights reserved.
 // License: https://github.com/serge-rgb/milton#license
 
 
 #pragma once
+
+#include "vector.h"
+
+#include "system_includes.h"  // Including this because some system headers will redefine macros. (offsetof in stddef.h)
 
 #ifdef array_count
 #error "array_count is already defined"
@@ -18,6 +22,10 @@
 #define max(a, b) (((a) < (b)) ? b : a)
 #endif
 
+#ifndef offsetof
+#define offsetof(object, member) ((size_t)&(((object *)0)->member))
+#endif
+
 // -----------
 // System stuf
 // -----------
@@ -29,14 +37,22 @@ size_t get_system_RAM();
 // Math functions.
 // ---------------
 
-v2i v2f_to_v2i(v2f p);
+v2l v2f_to_v2l(v2f p);
+
+v2f v2l_to_v2f(v2l p);
 
 v2f v2i_to_v2f(v2i p);
 
+v2i v2l_to_v2i(v2l p);
+
+v2l v2i_to_v2l(v2i p);
 
 #define kPi 3.14152654f
 
 #define DOT(a, b)  ((a).x * (b).x + (a).y * (b).y)
+
+#define I64_MAX 9223372036854775807L
+#define I64_MIN -9223372036854775807L
 
 f32 magnitude(v2f a);
 
@@ -47,6 +63,12 @@ i32 manhattan_distance(v2i a, v2i b);
 f32 deegrees_to_radians(int d);
 
 f32 radians_to_degrees(f32 r);
+
+f32 norm(v2f v);
+
+v2f normalized (v2f v);
+
+f32 clamp(f32 value, f32 min, f32 max);
 
 #define SQUARE(x) ((x) * (x))
 
@@ -83,17 +105,18 @@ b32 intersect_line_segments(v2i a, v2i b,
 // The mighty rect
 // ---------------
 
-typedef struct {
+typedef struct
+{
     union {
         struct {
-            v2i top_left;
-            v2i bot_right;
+            v2l top_left;
+            v2l bot_right;
         };
         struct {
-            i32 left;
-            i32 top;
-            i32 right;
-            i32 bottom;
+            i64 left;
+            i64 top;
+            i64 right;
+            i64 bottom;
         };
     };
 } Rect;
@@ -103,6 +126,9 @@ typedef struct {
 // Splits src_rect into a number of rectangles stored in dest_rects
 // Returns the number of rectangles into which src_rect was split.
 i32 rect_split(Rect** out_rects, Rect src_rect, i32 width, i32 height);
+
+// Returns a rectangle R such that for any other rectangle B , R union B = B
+Rect rect_without_size();
 
 // Set operations on rectangles
 Rect rect_union(Rect a, Rect b);
@@ -115,8 +141,7 @@ const Rect rect_enlarge(Rect src, i32 offset);
 
 b32 rect_is_valid(Rect rect);
 
-Rect bounding_rect_for_points(v2i points[], i32 num_points);
-Rect bounding_rect_for_points_scalar(i32 points_x[], i32 points_y[], i32 num_points);
+Rect bounding_rect_for_points(v2l points[], i32 num_points);
 
 i32 rect_area(Rect rect);
 
@@ -127,6 +152,12 @@ b32 is_rect_within_rect(Rect a, Rect b);
 
 Rect rect_from_xywh(i32 x, i32 y, i32 w, i32 h);
 
+wchar_t*    str_trim_to_last_slash(wchar_t* str);
+char*       str_trim_to_last_slash(char* str);
+void        utf16_to_utf8_simple(char* , char* );
+void        utf16_to_utf8_simple(wchar_t* utf16_name, char* utf8_name);
+
+
 struct Bitmap
 {
     i32 width;
@@ -134,7 +165,6 @@ struct Bitmap
     i32 num_components;
     u8* data;
 };
-
 
 // -----------
 // TIME
@@ -162,3 +192,22 @@ struct WallTime
 };
 // Use platform_get_walltime to fill struct.
 
+// Generic swap function
+template<typename T>
+void
+swap(T& a, T& b)
+{
+    T tmp = a;
+    a = b;
+    b = tmp;
+}
+
+
+// Hash function
+
+u64 hash(char* string, size_t len);
+
+template<typename T>
+T lerp(T begin, T end, float t) {
+    return begin * (1.0f - t) + (end * t);
+}
